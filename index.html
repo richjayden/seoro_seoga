@@ -1,0 +1,1321 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>서로서가</title>
+<meta name="description" content="독서모임 구성원끼리 책을 등록하고 서로 빌려주는 공유 서재">
+<meta name="theme-color" content="#7a2530">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="서로서가">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
+
+<!-- Firebase (compat SDK — same collection/doc/onSnapshot API shape used below) -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+<style>
+  :root {
+    --bg: #f5f2ec;
+    --surface: #faf8f4;
+    --surface-alt: #eeebe2;
+    --ink: #45403a;
+    --ink-soft: #7d766c;
+    --ink-faint: #a49c8f;
+    --line: #e0dbcd;
+    --line-strong: #cdc6b4;
+
+    --wine: #7a2530;
+    --wine-deep: #5c1c24;
+    --wine-tint: #f2e0de;
+
+    --clay: #c96f42;
+
+    --teal: #2e8c87;
+    --indigo: #4a5fa5;
+    --sky: #6ea8c9;
+
+    --forest: #4b6a4f;
+    --forest-deep: #33492f;
+    --forest-tint: #e3e8db;
+
+    --mustard: #b8863a;
+    --mustard-deep: #8f6621;
+    --mustard-tint: #f3e6cd;
+
+    --shadow-card: 0 1px 2px rgba(43, 33, 25, 0.06), 0 3px 10px rgba(43, 33, 25, 0.05);
+    --shadow-pop: 0 16px 36px rgba(43, 33, 25, 0.24);
+    --radius: 10px;
+    --radius-sm: 6px;
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1e1c19;
+      --surface: #27241f;
+      --surface-alt: #302c25;
+      --ink: #f2e8d8;
+      --ink-soft: #c4b7a2;
+      --ink-faint: #8f8270;
+      --line: #4a3f30;
+      --line-strong: #5c4f3c;
+
+      --wine: #d97a82;
+      --wine-deep: #eb98a0;
+      --wine-tint: #402024;
+
+      --clay: #e2946a;
+
+      --teal: #5fc2ba;
+      --indigo: #8fa3d9;
+      --sky: #a8d4ea;
+
+      --forest: #8fb593;
+      --forest-deep: #aed1b0;
+      --forest-tint: #263524;
+
+      --mustard: #d9a95c;
+      --mustard-deep: #e8c27f;
+      --mustard-tint: #3d2f18;
+
+      --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 14px rgba(0, 0, 0, 0.3);
+      --shadow-pop: 0 18px 40px rgba(0, 0, 0, 0.55);
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #1e1c19;
+    --surface: #27241f;
+    --surface-alt: #302c25;
+    --ink: #f2e8d8;
+    --ink-soft: #c4b7a2;
+    --ink-faint: #8f8270;
+    --line: #4a3f30;
+    --line-strong: #5c4f3c;
+
+    --wine: #d97a82;
+    --wine-deep: #eb98a0;
+    --wine-tint: #402024;
+
+    --clay: #e2946a;
+
+    --teal: #5fc2ba;
+    --indigo: #8fa3d9;
+    --sky: #a8d4ea;
+
+    --forest: #8fb593;
+    --forest-deep: #aed1b0;
+    --forest-tint: #263524;
+
+    --mustard: #d9a95c;
+    --mustard-deep: #e8c27f;
+    --mustard-tint: #3d2f18;
+
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 14px rgba(0, 0, 0, 0.3);
+    --shadow-pop: 0 18px 40px rgba(0, 0, 0, 0.55);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  img { max-width: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif;
+    font-size: 15.5px;
+    line-height: 1.5;
+    padding-inline: 20px;
+    padding-block: 26px 64px;
+  }
+
+  h1, h2, h3 { margin: 0; text-wrap: balance; font-family: "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif; }
+  #app { max-width: 940px; margin: 0 auto; }
+
+  /* ---------- masthead ---------- */
+  .masthead { padding-bottom: 16px; }
+  .brand { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .brand-left { display: flex; align-items: center; gap: 13px; }
+  .brand-mark svg { display: block; width: 42px; height: auto; }
+  .brand-name { font-weight: 700; font-size: 2.1rem; letter-spacing: 0.01em; color: var(--ink); }
+  .brand-tag {
+    margin-top: 3px;
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .whoami { text-align: right; font-size: 0.84rem; color: var(--ink-soft); }
+  .whoami strong { color: var(--ink); font-weight: 700; }
+  .whoami button {
+    margin-top: 3px;
+    background: none;
+    border: none;
+    color: var(--wine);
+    text-decoration: underline;
+    cursor: pointer;
+    font: inherit;
+    padding: 2px 0;
+  }
+  .masthead-rule { height: 3px; background: var(--wine); margin-top: 16px; }
+  .masthead-rule-thin { height: 1px; background: var(--line-strong); margin-bottom: 16px; }
+
+  /* ---------- issue line (stats) ---------- */
+  .issue-line {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .issue-line b { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .issue-line .sep { margin: 0 10px; color: var(--line-strong); }
+
+  /* ---------- tabs, styled as a book's table of contents ---------- */
+  .tabs {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 24px;
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+  }
+  .tab-btn {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    padding: 13px 16px;
+    cursor: pointer;
+    color: var(--ink-soft);
+    transition: background 0.15s, color 0.15s;
+  }
+  .tab-btn:last-child { border-bottom: none; }
+  .tab-btn:hover { background: var(--surface-alt); color: var(--ink); }
+  .tab-btn.is-active { color: var(--wine-deep); background: var(--wine-tint); }
+  .toc-num {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+    flex: none;
+    letter-spacing: 0.04em;
+    align-self: center;
+  }
+  .tab-btn.is-active .toc-num { color: var(--wine); }
+  .toc-label { font-weight: 700; font-size: 0.98rem; white-space: nowrap; align-self: center; }
+  .toc-dots {
+    flex: 1 1 auto;
+    align-self: center;
+    height: 0;
+    border-bottom: 2px dotted var(--line-strong);
+    margin: 0 2px;
+    min-width: 14px;
+  }
+  .tab-btn.is-active .toc-dots { border-bottom-color: var(--wine); }
+  .toc-count {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    flex: none;
+    align-self: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .tab-btn.is-active .toc-count { color: var(--wine-deep); }
+
+  /* lightweight "page turn" feel when switching sections (tap or swipe) */
+  @keyframes page-slide-in {
+    from { opacity: 0; transform: translateX(16px) rotateZ(1deg); }
+    to { opacity: 1; transform: translateX(0) rotateZ(0deg); }
+  }
+  @keyframes page-slide-in-rev {
+    from { opacity: 0; transform: translateX(-16px) rotateZ(-1deg); }
+    to { opacity: 1; transform: translateX(0) rotateZ(0deg); }
+  }
+  .page-anim-fwd { animation: page-slide-in 0.26s ease-out both; }
+  .page-anim-rev { animation: page-slide-in-rev 0.26s ease-out both; }
+  @media (prefers-reduced-motion: reduce) {
+    .page-anim-fwd, .page-anim-rev { animation: none; }
+  }
+
+  .tab-btn:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--wine);
+    outline-offset: 2px;
+  }
+
+  /* ---------- toolbar ---------- */
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px; }
+  .search-input {
+    flex: 1 1 220px;
+    font: inherit;
+    font-size: 0.92rem;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .chip-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.8rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .chip.is-active { background: var(--wine); border-color: var(--wine); color: var(--surface); }
+
+  /* ---------- book grid & cards ---------- */
+  .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(252px, 1fr)); gap: 16px; }
+
+  .book-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .card-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+
+  .genre-chip {
+    align-self: flex-start;
+    font-weight: 700;
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    border: 1px solid var(--line-strong);
+    padding: 3px 9px;
+    border-radius: 999px;
+  }
+
+  .book-title { font-weight: 700; font-size: 1.1rem; line-height: 1.4; color: var(--ink); }
+  .new-badge {
+    display: inline-block;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.58rem;
+    font-weight: 600;
+    color: var(--wine);
+    border: 1px solid var(--wine);
+    border-radius: 4px;
+    padding: 1px 5px;
+    margin-left: 6px;
+    vertical-align: middle;
+    transform: translateY(-2px);
+    letter-spacing: 0.04em;
+  }
+  .book-meta { font-size: 0.85rem; color: var(--ink-soft); }
+  .book-note {
+    font-size: 0.83rem;
+    color: var(--ink-soft);
+    background: var(--surface-alt);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-style: italic;
+  }
+  .status-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+  .pill { font-size: 0.75rem; font-weight: 700; padding: 4px 11px; border-radius: 999px; letter-spacing: 0.01em; }
+  .pill.st-available { background: var(--forest-tint); color: var(--forest-deep); }
+  .pill.st-borrowed { background: var(--surface-alt); color: var(--ink-soft); border: 1px solid var(--line-strong); }
+
+  .stamp {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1px dashed var(--line-strong);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-variant-numeric: tabular-nums;
+  }
+  .stamp.is-overdue { background: var(--wine); color: var(--surface); border-color: var(--wine); }
+
+  .borrower-line { font-size: 0.82rem; color: var(--ink-soft); }
+  .want-line { font-size: 0.8rem; color: var(--ink-faint); display: flex; align-items: center; gap: 4px; }
+  .want-line b { color: var(--mustard-deep); font-weight: 700; }
+  .want-line svg { color: var(--mustard); flex: none; }
+
+  .card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 8px; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font: inherit;
+    font-weight: 700;
+    font-size: 0.82rem;
+    border-radius: var(--radius-sm);
+    padding: 9px 14px;
+    cursor: pointer;
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    color: var(--ink-soft);
+    line-height: 1.1;
+  }
+  .btn:hover { border-color: var(--wine); color: var(--wine); }
+  .btn.primary { background: var(--wine); border-color: var(--wine); color: var(--surface); }
+  .btn.primary:hover { background: var(--wine-deep); border-color: var(--wine-deep); color: var(--surface); }
+  .btn.ghost { background: transparent; }
+  .btn.danger { color: var(--wine); border-color: var(--wine); background: transparent; }
+  .btn.want { color: var(--ink-soft); }
+  .btn.want svg { color: var(--mustard); }
+  .btn.want.is-on { background: var(--mustard-tint); border-color: var(--mustard); color: var(--mustard-deep); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .inline-form {
+    margin-top: 4px;
+    background: var(--surface-alt);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .inline-form label { font-size: 0.8rem; font-weight: 600; color: var(--ink-soft); }
+  .inline-form input[type="date"] {
+    font: inherit;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.85rem;
+    padding: 6px 8px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+  }
+
+  .empty-state {
+    text-align: center;
+    color: var(--ink-soft);
+    padding: 48px 16px;
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius);
+    grid-column: 1 / -1;
+  }
+  .empty-state p:first-child { font-weight: 700; font-size: 1.05rem; color: var(--ink); margin-bottom: 6px; }
+
+  /* ---------- my shelf form ---------- */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-card);
+  }
+  .panel h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 14px; color: var(--ink); }
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field.span-2 { grid-column: 1 / -1; }
+  .field label { font-size: 0.8rem; font-weight: 600; color: var(--ink-soft); }
+  .field input, .field textarea {
+    font: inherit;
+    font-size: 0.92rem;
+    padding: 9px 11px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--ink);
+    width: 100%;
+  }
+  .field textarea { resize: vertical; min-height: 52px; }
+  .panel-actions { display: flex; gap: 8px; margin-top: 14px; }
+  @media (max-width: 480px) { .field-grid { grid-template-columns: 1fr; } }
+
+  .section-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+  .section-heading h2 { font-size: 1.2rem; font-weight: 700; color: var(--ink); }
+
+  /* ---------- activity ---------- */
+  .activity-list { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+  .activity-row { display: flex; justify-content: space-between; gap: 14px; padding: 13px 16px; border-bottom: 1px solid var(--line); font-size: 0.87rem; }
+  .activity-row:last-child { border-bottom: none; }
+  .activity-time { font-family: "JetBrains Mono", monospace; font-size: 0.72rem; color: var(--ink-faint); white-space: nowrap; }
+
+  /* ---------- identity modal ---------- */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(43, 33, 25, 0.55);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    z-index: 50;
+  }
+  .modal-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-pop);
+    padding: 28px;
+    max-width: 400px;
+    width: 100%;
+  }
+  .modal-card h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; color: var(--ink); }
+  .modal-card p { color: var(--ink-soft); font-size: 0.88rem; margin-bottom: 16px; }
+  .modal-card input {
+    font: inherit;
+    font-size: 0.95rem;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+  .member-chip-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .member-chip {
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    background: var(--surface-alt);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .member-chip:hover { border-color: var(--wine); color: var(--wine); }
+
+  .banner {
+    background: var(--wine-tint);
+    color: var(--wine-deep);
+    border: 1px solid var(--wine);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    margin-bottom: 18px;
+  }
+
+  .loading-note { color: var(--ink-faint); font-size: 0.88rem; padding: 24px 0; text-align: center; }
+
+  footer.credit {
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 44px;
+  }
+
+  @media (max-width: 460px) {
+    .brand-name { font-size: 1.6rem; }
+    .brand-mark svg { width: 36px; height: auto; }
+    .whoami { text-align: left; }
+    .brand { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="masthead">
+    <div class="brand">
+      <div class="brand-left">
+        <span class="brand-mark" id="brand-mark"></span>
+        <div>
+          <div class="brand-name">서로서가</div>
+          <div class="brand-tag">독서모임 공유 서재</div>
+        </div>
+      </div>
+      <div class="whoami" id="whoami"></div>
+    </div>
+    <div class="masthead-rule"></div>
+    <div class="masthead-rule-thin"></div>
+  </div>
+
+  <div id="db-banner"></div>
+  <div class="issue-line" id="issue-line"></div>
+
+  <nav class="tabs" id="tabs"></nav>
+
+  <main id="main">
+    <section id="view-all">
+      <div class="toolbar">
+        <input type="text" id="search-input" class="search-input" placeholder="제목, 저자, 소장자로 검색" autocomplete="off">
+        <div class="chip-group" id="status-filter"></div>
+      </div>
+      <div class="book-grid" id="all-grid"></div>
+    </section>
+
+    <section id="view-mine" hidden>
+      <div class="panel" id="book-form-panel"></div>
+      <div class="section-heading"><h2>내 서재</h2></div>
+      <div class="book-grid" id="mine-grid"></div>
+    </section>
+
+    <section id="view-wish" hidden>
+      <div class="section-heading"><h2>찜한 책</h2></div>
+      <div class="book-grid" id="wish-grid"></div>
+    </section>
+
+    <section id="view-activity" hidden>
+      <div class="section-heading"><h2>최근 활동</h2></div>
+      <div id="activity-wrap"></div>
+    </section>
+  </main>
+
+  <footer class="credit">서로서가 · 독서모임 도서 공유</footer>
+</div>
+
+<div class="modal-backdrop" id="identity-modal" hidden>
+  <div class="modal-card">
+    <h2>이름을 알려주세요</h2>
+    <p>책을 등록하거나 빌리려면 이름이 필요해요. 이미 등록하셨다면 아래에서 이름을 선택해 주세요.</p>
+    <input type="text" id="name-input" placeholder="예: 김서가" maxlength="20">
+    <div class="member-chip-list" id="member-chip-list"></div>
+    <div class="panel-actions">
+      <button class="btn primary" id="name-submit">시작하기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Firebase project config ----------
+  // Firebase 콘솔 > 프로젝트 설정 > "내 앱" 에서 웹 앱을 추가하면 나오는 값을
+  // 그대로 여기에 붙여넣으세요. (README-DEPLOY.md에 단계별 안내가 있어요.)
+  var FIREBASE_CONFIG = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+
+  var LOGO_SVG =
+    '<svg viewBox="0 0 68 64" width="42" height="39.5" aria-hidden="true" focusable="false">' +
+    '<rect x="8" y="26" width="11" height="32" rx="3" style="fill:var(--teal)"></rect>' +
+    '<rect x="14.6" y="29" width="1.6" height="26" rx="0.8" fill="#fffdf8" opacity="0.26"></rect>' +
+    '<rect x="21" y="21" width="11" height="37" rx="3" style="fill:var(--indigo)"></rect>' +
+    '<rect x="27.6" y="24" width="1.6" height="31" rx="0.8" fill="#fffdf8" opacity="0.24"></rect>' +
+    '<rect x="34" y="16" width="11" height="42" rx="3" style="fill:var(--sky)"></rect>' +
+    '<rect x="40.6" y="19" width="1.6" height="36" rx="0.8" fill="#fffdf8" opacity="0.26"></rect>' +
+    '<g transform="rotate(-26 53.5 58)">' +
+    '<rect x="48" y="29" width="11" height="29" rx="3" style="fill:var(--clay)"></rect>' +
+    '<rect x="54.6" y="32" width="1.6" height="23" rx="0.8" fill="#fffdf8" opacity="0.28"></rect>' +
+    "</g>" +
+    "</svg>";
+
+  var HEART_OUTLINE = '<svg viewBox="0 0 20 20" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><circle cx="7" cy="7.3" r="3.2"></circle><circle cx="13" cy="7.3" r="3.2"></circle><polygon points="3.4,9.4 16.6,9.4 10,16.3"></polygon></svg>';
+  var HEART_FILLED = '<svg viewBox="0 0 20 20" width="13" height="13" fill="currentColor"><circle cx="7" cy="7.3" r="3.8"></circle><circle cx="13" cy="7.3" r="3.8"></circle><polygon points="3.2,9.3 16.8,9.3 10,16.6"></polygon></svg>';
+
+  var GENRE_SUGGESTIONS = ["소설", "에세이", "인문", "자기계발", "시/문학", "과학", "역사", "경제/경영", "예술", "만화", "기타"];
+  var TABS = [
+    { id: "all", label: "전체 서가", icon: "all" },
+    { id: "mine", label: "내 서재", icon: "mine" },
+    { id: "wish", label: "찜한 책", icon: "wish" },
+    { id: "activity", label: "최근 활동", icon: "activity" }
+  ];
+
+  var db = null;
+  var me = null; // {id, name}
+  var members = [];   // [{id, name}]
+  var books = [];      // [{id, ...}]
+  var activity = [];   // [{id, ...}]
+  var dbReady = false;
+  var dbFailed = false;
+
+  var state = {
+    tab: "all",
+    search: "",
+    statusFilter: "all", // all | available | borrowed
+    borrowOpenFor: {},   // bookId -> default due date string
+    editingBookId: null, // null | "new" | bookId
+    formDraft: null
+  };
+
+  // ---------- utils ----------
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function localDateStr(d) {
+    d = d || new Date();
+    var y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, "0"), day = String(d.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + day;
+  }
+  function addDays(str, n) {
+    var d = new Date(str + "T00:00:00");
+    d.setDate(d.getDate() + n);
+    return localDateStr(d);
+  }
+  function fmtDate(iso) {
+    if (!iso) return "";
+    var d = new Date(iso + "T00:00:00");
+    var wd = ["일", "월", "화", "수", "목", "금", "토"][d.getDay()];
+    return (d.getMonth() + 1) + "월 " + d.getDate() + "일(" + wd + ")";
+  }
+  function overdueDays(iso) {
+    var today = new Date(localDateStr() + "T00:00:00");
+    var due = new Date(iso + "T00:00:00");
+    return Math.round((today - due) / 86400000);
+  }
+  function isOverdue(book) {
+    return book.status === "borrowed" && book.dueDate && book.dueDate < localDateStr();
+  }
+  function timeAgo(ts) {
+    var diff = Math.max(0, Date.now() - ts);
+    var m = Math.floor(diff / 60000);
+    if (m < 1) return "방금 전";
+    if (m < 60) return m + "분 전";
+    var h = Math.floor(m / 60);
+    if (h < 24) return h + "시간 전";
+    var d = Math.floor(h / 24);
+    return d + "일 전";
+  }
+  function genId() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "id-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+  }
+
+  // preserve focus/scroll across full re-renders
+  function withPreservedFocus(fn) {
+    var active = document.activeElement;
+    var activeId = active && active.id ? active.id : null;
+    var selStart = null, selEnd = null;
+    if (active && typeof active.selectionStart === "number") {
+      selStart = active.selectionStart; selEnd = active.selectionEnd;
+    }
+    var scrollY = window.scrollY;
+    fn();
+    if (activeId) {
+      var el = document.getElementById(activeId);
+      if (el) {
+        el.focus();
+        if (selStart !== null && el.setSelectionRange) {
+          try { el.setSelectionRange(selStart, selEnd); } catch (e) {}
+        }
+      }
+    }
+    window.scrollTo(0, scrollY);
+  }
+
+  // ---------- identity ----------
+  function loadLocalMember() {
+    try {
+      var raw = localStorage.getItem("seoroseoga_me");
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+  function saveLocalMember(m) {
+    try { localStorage.setItem("seoroseoga_me", JSON.stringify(m)); } catch (e) {}
+  }
+  function clearLocalMember() {
+    try { localStorage.removeItem("seoroseoga_me"); } catch (e) {}
+  }
+
+  var pendingIdentityAction = null;
+
+  // Browsing 전체 서가 needs no identity at all. Only actions that must be
+  // attributed to someone (registering a book, borrowing, wishing) ask for
+  // a name — and only at the moment they're needed, not up front.
+  function requireIdentity(action) {
+    if (me) { action(); return; }
+    pendingIdentityAction = action;
+    showIdentityModal();
+  }
+
+  function showIdentityModal() {
+    var modal = document.getElementById("identity-modal");
+    modal.hidden = false;
+    renderIdentityChips();
+  }
+  function hideIdentityModal() {
+    document.getElementById("identity-modal").hidden = true;
+  }
+
+  function becomeMember(m) {
+    me = m;
+    saveLocalMember(m);
+    hideIdentityModal();
+    render();
+    if (pendingIdentityAction) {
+      var action = pendingIdentityAction;
+      pendingIdentityAction = null;
+      action();
+    }
+  }
+
+  function handleNameSubmit() {
+    var input = document.getElementById("name-input");
+    var name = (input.value || "").trim();
+    if (!name) { input.focus(); return; }
+    var id = genId();
+    var record = { id: id, name: name };
+    if (db) {
+      db.collection("members").doc(id).set({ name: name, createdAt: Date.now() }).catch(function () {});
+    }
+    becomeMember(record);
+  }
+
+  function switchIdentity() {
+    clearLocalMember();
+    me = null;
+    pendingIdentityAction = null;
+    showIdentityModal();
+    render();
+  }
+
+  // ---------- activity log (best effort) ----------
+  function logActivity(type, book) {
+    if (!db || !me) return;
+    db.collection("activity").add({
+      type: type,
+      bookTitle: book.title,
+      actorName: me.name,
+      ts: Date.now()
+    }).catch(function () {});
+  }
+
+  // ---------- data actions ----------
+  function addBook(data) {
+    if (!db || !me) return;
+    db.collection("books").add({
+      ownerId: me.id,
+      ownerName: me.name,
+      title: data.title,
+      author: data.author || "",
+      genre: data.genre || "",
+      note: data.note || "",
+      status: "available",
+      borrowerId: null,
+      borrowerName: null,
+      dueDate: null,
+      lentAt: null,
+      wantList: [],
+      createdAt: Date.now()
+    }).then(function () {
+      logActivity("add", { title: data.title });
+    }).catch(function () {});
+  }
+  function updateBook(id, patch) {
+    if (!db) return;
+    db.collection("books").doc(id).update(patch).catch(function () {});
+  }
+  function deleteBook(id) {
+    if (!db) return;
+    db.collection("books").doc(id).delete().catch(function () {});
+  }
+  function confirmBorrow(book, dueDate) {
+    updateBook(book.id, {
+      status: "borrowed",
+      borrowerId: me.id,
+      borrowerName: me.name,
+      dueDate: dueDate,
+      lentAt: Date.now(),
+      wantList: (book.wantList || []).filter(function (w) { return w.id !== me.id; })
+    });
+    logActivity("borrow", book);
+  }
+  function returnBook(book) {
+    updateBook(book.id, { status: "available", borrowerId: null, borrowerName: null, dueDate: null, lentAt: null });
+    logActivity("return", book);
+  }
+  function toggleWant(book) {
+    var list = book.wantList || [];
+    var already = list.some(function (w) { return w.id === me.id; });
+    var next = already ? list.filter(function (w) { return w.id !== me.id; }) : list.concat([{ id: me.id, name: me.name }]);
+    updateBook(book.id, { wantList: next });
+    if (!already) logActivity("want", book);
+  }
+
+  // ---------- rendering ----------
+  function render() {
+    withPreservedFocus(function () {
+      document.getElementById("brand-mark").innerHTML = LOGO_SVG;
+      renderWhoami();
+      renderBanner();
+      renderIssueLine();
+      renderTabs();
+      renderIdentityChips();
+      renderAllView();
+      renderMineView();
+      renderWishView();
+      renderActivityView();
+    });
+  }
+
+  function renderIdentityChips() {
+    if (!document.getElementById("identity-modal").hidden) {
+      var list = document.getElementById("member-chip-list");
+      list.innerHTML = members.map(function (m) {
+        return '<button type="button" class="member-chip" data-pick-member="' + esc(m.id) + '">' + esc(m.name) + "</button>";
+      }).join("");
+    }
+  }
+
+  function renderWhoami() {
+    var el = document.getElementById("whoami");
+    if (!me) {
+      el.innerHTML = "둘러보는 중<br><button type=\"button\" id=\"set-identity\">이름 등록하기</button>";
+      return;
+    }
+    el.innerHTML = "회원 <strong>" + esc(me.name) + "</strong>님<br><button type=\"button\" id=\"switch-identity\">다른 사람으로 전환</button>";
+  }
+
+  function renderBanner() {
+    var el = document.getElementById("db-banner");
+    el.innerHTML = dbFailed
+      ? '<div class="banner">실시간 저장소에 연결하지 못했어요. 잠시 후 새로고침해 주세요. (계속되면 관리자에게 알려주세요)</div>'
+      : "";
+  }
+
+  function renderIssueLine() {
+    var el = document.getElementById("issue-line");
+    if (!dbReady) { el.innerHTML = ""; return; }
+    var borrowedCount = books.filter(function (b) { return b.status === "borrowed"; }).length;
+    var availableCount = books.filter(function (b) { return b.status === "available"; }).length;
+    el.innerHTML =
+      "회원 <b>" + members.length + "</b>명" +
+      '<span class="sep">·</span>등록 도서 <b>' + books.length + "</b>권" +
+      '<span class="sep">·</span>대출 가능 <b>' + availableCount + "</b>권" +
+      '<span class="sep">·</span>대출 중 <b>' + borrowedCount + "</b>권";
+  }
+
+  function tabCounts() {
+    return {
+      all: books.length,
+      mine: me ? books.filter(function (b) { return b.ownerId === me.id; }).length : 0,
+      wish: me ? books.filter(function (b) { return (b.wantList || []).some(function (w) { return w.id === me.id; }); }).length : 0,
+      activity: activity.length
+    };
+  }
+
+  function renderTabs() {
+    var el = document.getElementById("tabs");
+    var counts = tabCounts();
+    el.innerHTML = TABS.map(function (t, i) {
+      var num = String(i + 1).padStart(2, "0");
+      return '<button type="button" class="tab-btn' + (state.tab === t.id ? " is-active" : "") + '" data-tab="' + t.id + '">' +
+        '<span class="toc-num">' + num + '</span>' +
+        '<span class="toc-label">' + t.label + '</span>' +
+        '<span class="toc-dots"></span>' +
+        '<span class="toc-count">' + counts[t.id] + '</span>' +
+        '</button>';
+    }).join("");
+    TABS.forEach(function (t) {
+      var section = document.getElementById("view-" + t.id);
+      if (section) section.hidden = state.tab !== t.id;
+    });
+  }
+
+  function tabIndex(tabId) {
+    for (var i = 0; i < TABS.length; i++) if (TABS[i].id === tabId) return i;
+    return -1;
+  }
+
+  function goToTab(tabId) {
+    if (tabId === state.tab) return;
+    var oldIdx = tabIndex(state.tab);
+    var newIdx = tabIndex(tabId);
+    state.tab = tabId;
+    render();
+    var section = document.getElementById("view-" + tabId);
+    if (section) {
+      section.classList.remove("page-anim-fwd", "page-anim-rev");
+      void section.offsetWidth; // restart animation
+      section.classList.add(newIdx > oldIdx ? "page-anim-fwd" : "page-anim-rev");
+    }
+  }
+
+  function statusFilterChips() {
+    var el = document.getElementById("status-filter");
+    var opts = [["all", "전체"], ["available", "대출 가능"], ["borrowed", "대출 중"]];
+    el.innerHTML = opts.map(function (o) {
+      return '<button type="button" class="chip' + (state.statusFilter === o[0] ? " is-active" : "") + '" data-status-filter="' + o[0] + '">' + o[1] + "</button>";
+    }).join("");
+  }
+
+  function bookCardHTML(book) {
+    var isMine = !!me && book.ownerId === me.id;
+    var isBorrowedByMe = !!me && book.borrowerId === me.id;
+    var wantList = book.wantList || [];
+    var wantedByMe = !!me && wantList.some(function (w) { return w.id === me.id; });
+    var overdue = isOverdue(book);
+    var isNew = Date.now() - (book.createdAt || 0) < 3 * 86400000;
+
+    var statusPill = book.status === "available"
+      ? '<span class="pill st-available">대출 가능</span>'
+      : '<span class="pill st-borrowed">대출 중</span>';
+
+    var stamp = "";
+    if (book.status === "borrowed" && book.dueDate) {
+      stamp = overdue
+        ? '<span class="stamp is-overdue">연체 ' + overdueDays(book.dueDate) + '일째</span>'
+        : '<span class="stamp">' + fmtDate(book.dueDate) + " 반납예정</span>";
+    }
+
+    var borrowerLine = book.status === "borrowed"
+      ? '<p class="borrower-line">대출자: ' + esc(book.borrowerName) + (isBorrowedByMe ? " (나)" : "") + "</p>"
+      : "";
+
+    var wantLine = "";
+    if (wantList.length) {
+      wantLine = '<p class="want-line">' + HEART_FILLED + " <b>" + wantList.length + "</b> · " + wantList.map(function (w) { return esc(w.name); }).join(", ") + "</p>";
+    }
+
+    var heartIcon = wantedByMe ? HEART_FILLED : HEART_OUTLINE;
+    var wantBtn = '<button type="button" class="btn want' + (wantedByMe ? " is-on" : "") + '" data-action="toggle-want" data-id="' + book.id + '">' + heartIcon + (wantedByMe ? "찜 해제" : "찜하기") + "</button>";
+
+    var actions = "";
+    if (isMine) {
+      actions = '<button type="button" class="btn ghost" data-action="edit" data-id="' + book.id + '">수정</button>' +
+        '<button type="button" class="btn danger" data-action="delete" data-id="' + book.id + '">삭제</button>';
+      if (book.status === "borrowed") {
+        actions += '<button type="button" class="btn" data-action="force-return" data-id="' + book.id + '">반납 처리</button>';
+      }
+    } else if (book.status === "available") {
+      actions = '<button type="button" class="btn primary" data-action="open-borrow" data-id="' + book.id + '">대출하기</button>' + wantBtn;
+    } else if (isBorrowedByMe) {
+      actions = '<button type="button" class="btn primary" data-action="return" data-id="' + book.id + '">반납하기</button>';
+    } else {
+      actions = wantBtn;
+    }
+
+    var inlineBorrowForm = "";
+    if (state.borrowOpenFor.hasOwnProperty(book.id)) {
+      var defaultDate = state.borrowOpenFor[book.id];
+      inlineBorrowForm =
+        '<div class="inline-form">' +
+        '<label for="due-' + book.id + '">반납예정일</label>' +
+        '<input type="date" id="due-' + book.id + '" value="' + defaultDate + '">' +
+        '<button type="button" class="btn primary" data-action="confirm-borrow" data-id="' + book.id + '">확정</button>' +
+        '<button type="button" class="btn ghost" data-action="cancel-borrow" data-id="' + book.id + '">취소</button>' +
+        "</div>";
+    }
+
+    return (
+      '<article class="book-card">' +
+      '<div class="card-body">' +
+      '<span class="genre-chip">' + esc(book.genre || "미분류") + "</span>" +
+      '<h3 class="book-title">' + esc(book.title) + (isNew ? '<span class="new-badge">NEW</span>' : "") + "</h3>" +
+      '<p class="book-meta">' + esc(book.author || "저자 미상") + " · 소장: " + esc(book.ownerName) + (isMine ? " (나)" : "") + "</p>" +
+      (book.note ? '<p class="book-note">' + esc(book.note) + "</p>" : "") +
+      '<div class="status-row">' + statusPill + stamp + "</div>" +
+      borrowerLine +
+      wantLine +
+      '<div class="card-actions">' + actions + "</div>" +
+      inlineBorrowForm +
+      "</div>" +
+      "</article>"
+    );
+  }
+
+  function matchesSearch(book, q) {
+    if (!q) return true;
+    q = q.toLowerCase();
+    return (book.title || "").toLowerCase().indexOf(q) !== -1 ||
+      (book.author || "").toLowerCase().indexOf(q) !== -1 ||
+      (book.ownerName || "").toLowerCase().indexOf(q) !== -1;
+  }
+
+  function renderAllView() {
+    statusFilterChips();
+    var grid = document.getElementById("all-grid");
+    if (!dbReady) { grid.innerHTML = '<div class="loading-note">불러오는 중…</div>'; return; }
+    var list = books.filter(function (b) {
+      if (state.statusFilter !== "all" && b.status !== state.statusFilter) return false;
+      return matchesSearch(b, state.search);
+    }).slice().sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+
+    if (!list.length) {
+      grid.innerHTML = '<div class="empty-state"><p>표시할 책이 없어요</p><p>검색어나 필터를 확인해 보세요</p></div>';
+      return;
+    }
+    grid.innerHTML = list.map(function (b) { return bookCardHTML(b); }).join("");
+  }
+
+  function bookFormHTML() {
+    if (state.editingBookId === null) {
+      return '<button type="button" class="btn primary" data-action="open-add-form">+ 책 등록하기</button>';
+    }
+    var editing = state.editingBookId !== "new";
+    var draft = state.formDraft || { title: "", author: "", genre: "", note: "" };
+    return (
+      "<h2>" + (editing ? "책 정보 수정" : "책 등록하기") + "</h2>" +
+      '<div class="field-grid">' +
+      '<div class="field"><label for="f-title">제목 *</label><input type="text" id="f-title" value="' + esc(draft.title) + '" placeholder="책 제목"></div>' +
+      '<div class="field"><label for="f-author">저자</label><input type="text" id="f-author" value="' + esc(draft.author) + '" placeholder="지은이"></div>' +
+      '<div class="field"><label for="f-genre">분류</label><input type="text" id="f-genre" list="genre-suggestions" value="' + esc(draft.genre) + '" placeholder="예: 소설"></div>' +
+      '<div class="field span-2"><label for="f-note">메모 (상태, 소장 이유 등)</label><textarea id="f-note" placeholder="예: 밑줄 조금 있어요">' + esc(draft.note) + "</textarea></div>" +
+      "</div>" +
+      '<datalist id="genre-suggestions">' + GENRE_SUGGESTIONS.map(function (g) { return '<option value="' + esc(g) + '">'; }).join("") + "</datalist>" +
+      '<div class="panel-actions">' +
+      '<button type="button" class="btn primary" data-action="save-book">' + (editing ? "저장" : "등록") + "</button>" +
+      '<button type="button" class="btn ghost" data-action="cancel-form">취소</button>' +
+      "</div>"
+    );
+  }
+
+  function renderMineView() {
+    document.getElementById("book-form-panel").innerHTML = bookFormHTML();
+    var grid = document.getElementById("mine-grid");
+    if (!dbReady) { grid.innerHTML = '<div class="loading-note">불러오는 중…</div>'; return; }
+    if (!me) {
+      grid.innerHTML = '<div class="empty-state"><p>아직 등록한 책이 없어요</p><p>위에서 책을 등록하면 이름을 물어볼게요</p></div>';
+      return;
+    }
+    var mine = books.filter(function (b) { return b.ownerId === me.id; })
+      .slice().sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+    if (!mine.length) {
+      grid.innerHTML = '<div class="empty-state"><p>아직 등록한 책이 없어요</p><p>위에서 첫 책을 등록해 보세요</p></div>';
+      return;
+    }
+    grid.innerHTML = mine.map(function (b) { return bookCardHTML(b); }).join("");
+  }
+
+  function renderWishView() {
+    var grid = document.getElementById("wish-grid");
+    if (!dbReady) { grid.innerHTML = '<div class="loading-note">불러오는 중…</div>'; return; }
+    if (!me) {
+      grid.innerHTML = '<div class="empty-state"><p>찜한 책이 없어요</p><p>전체 서가에서 마음에 드는 책에 하트를 눌러보세요</p></div>';
+      return;
+    }
+    var wished = books.filter(function (b) { return (b.wantList || []).some(function (w) { return w.id === me.id; }); })
+      .slice().sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+    if (!wished.length) {
+      grid.innerHTML = '<div class="empty-state"><p>찜한 책이 없어요</p><p>전체 서가에서 마음에 드는 책을 찜해보세요</p></div>';
+      return;
+    }
+    grid.innerHTML = wished.map(function (b) { return bookCardHTML(b); }).join("");
+  }
+
+  var ACTIVITY_LABEL = {
+    add: function (a) { return esc(a.actorName) + "님이 『" + esc(a.bookTitle) + "』 등록"; },
+    borrow: function (a) { return esc(a.actorName) + "님이 『" + esc(a.bookTitle) + "』 대출 시작"; },
+    return: function (a) { return esc(a.actorName) + "님이 『" + esc(a.bookTitle) + "』 반납 완료"; },
+    want: function (a) { return esc(a.actorName) + "님이 『" + esc(a.bookTitle) + "』 찜함"; }
+  };
+
+  function renderActivityView() {
+    var wrap = document.getElementById("activity-wrap");
+    if (!dbReady) { wrap.innerHTML = '<div class="loading-note">불러오는 중…</div>'; return; }
+    if (!activity.length) {
+      wrap.innerHTML = '<div class="empty-state"><p>아직 활동이 없어요</p><p>책을 등록하거나 대출해보면 여기 기록돼요</p></div>';
+      return;
+    }
+    wrap.innerHTML = '<div class="activity-list">' + activity.map(function (a) {
+      var label = ACTIVITY_LABEL[a.type] ? ACTIVITY_LABEL[a.type](a) : esc(a.actorName) + "님의 활동";
+      return '<div class="activity-row"><span>' + label + '</span><span class="activity-time">' + timeAgo(a.ts) + "</span></div>";
+    }).join("") + "</div>";
+  }
+
+  // ---------- events ----------
+  document.addEventListener("click", function (e) {
+    var pickBtn = e.target.closest("[data-pick-member]");
+    if (pickBtn) {
+      var id = pickBtn.getAttribute("data-pick-member");
+      var m = members.find(function (x) { return x.id === id; });
+      if (m) becomeMember({ id: m.id, name: m.name });
+      return;
+    }
+    if (e.target.id === "name-submit") { handleNameSubmit(); return; }
+    if (e.target.id === "switch-identity") { switchIdentity(); return; }
+    if (e.target.id === "set-identity") { requireIdentity(function () {}); return; }
+
+    var tabBtn = e.target.closest("[data-tab]");
+    if (tabBtn) { goToTab(tabBtn.getAttribute("data-tab")); return; }
+
+    var filterBtn = e.target.closest("[data-status-filter]");
+    if (filterBtn) { state.statusFilter = filterBtn.getAttribute("data-status-filter"); render(); return; }
+
+    var actionBtn = e.target.closest("[data-action]");
+    if (!actionBtn) return;
+    var action = actionBtn.getAttribute("data-action");
+    var id = actionBtn.getAttribute("data-id");
+    var book = id ? books.find(function (b) { return b.id === id; }) : null;
+
+    if (action === "open-borrow") {
+      requireIdentity(function () {
+        var next = {};
+        next[id] = addDays(localDateStr(), 14);
+        state.borrowOpenFor = next;
+        render();
+      });
+    } else if (action === "cancel-borrow") {
+      delete state.borrowOpenFor[id];
+      render();
+    } else if (action === "confirm-borrow") {
+      var input = document.getElementById("due-" + id);
+      var due = input && input.value ? input.value : addDays(localDateStr(), 14);
+      delete state.borrowOpenFor[id];
+      if (book) confirmBorrow(book, due);
+      render();
+    } else if (action === "return") {
+      if (book) returnBook(book);
+    } else if (action === "force-return") {
+      if (book) returnBook(book);
+    } else if (action === "toggle-want") {
+      if (book) requireIdentity(function () { toggleWant(book); });
+    } else if (action === "delete") {
+      if (book && window.confirm('"' + book.title + '"을(를) 서재에서 삭제할까요?')) deleteBook(id);
+    } else if (action === "edit") {
+      state.editingBookId = id;
+      state.formDraft = book ? { title: book.title, author: book.author, genre: book.genre, note: book.note } : { title: "", author: "", genre: "", note: "" };
+      render();
+    } else if (action === "open-add-form") {
+      requireIdentity(function () {
+        state.editingBookId = "new";
+        state.formDraft = { title: "", author: "", genre: "", note: "" };
+        render();
+      });
+    } else if (action === "cancel-form") {
+      state.editingBookId = null;
+      state.formDraft = null;
+      render();
+    } else if (action === "save-book") {
+      var titleEl = document.getElementById("f-title");
+      var title = titleEl ? titleEl.value.trim() : "";
+      if (!title) { titleEl.focus(); return; }
+      var data = {
+        title: title,
+        author: (document.getElementById("f-author") || {}).value || "",
+        genre: (document.getElementById("f-genre") || {}).value || "",
+        note: (document.getElementById("f-note") || {}).value || ""
+      };
+      if (state.editingBookId === "new") {
+        addBook(data);
+      } else {
+        updateBook(state.editingBookId, data);
+      }
+      state.editingBookId = null;
+      state.formDraft = null;
+      render();
+    }
+  });
+
+  document.addEventListener("input", function (e) {
+    if (e.target.id === "search-input") {
+      state.search = e.target.value;
+      render();
+      return;
+    }
+    // Keep the in-progress add/edit form synced to state so a re-render
+    // triggered by another member's action (a live db update) never
+    // wipes out text this person is mid-typing.
+    if (state.formDraft) {
+      var fieldMap = { "f-title": "title", "f-author": "author", "f-genre": "genre", "f-note": "note" };
+      var key = fieldMap[e.target.id];
+      if (key) state.formDraft[key] = e.target.value;
+    }
+    if (e.target.id && e.target.id.indexOf("due-") === 0) {
+      var bookId = e.target.id.slice(4);
+      if (state.borrowOpenFor.hasOwnProperty(bookId)) state.borrowOpenFor[bookId] = e.target.value;
+    }
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && e.target.id === "name-input") handleNameSubmit();
+  });
+
+  // swipe between sections like turning a page — only reacts to a clear,
+  // mostly-horizontal gesture on release, so normal scrolling and taps
+  // are never intercepted or blocked.
+  var touchStart = null;
+  document.addEventListener("touchstart", function (e) {
+    if (!me || e.touches.length !== 1) { touchStart = null; return; }
+    if (!document.getElementById("identity-modal").hidden) { touchStart = null; return; }
+    if (e.target && typeof e.target.closest === "function" && e.target.closest("input, textarea, select, .modal-card")) { touchStart = null; return; }
+    var t = e.touches[0];
+    touchStart = { x: t.clientX, y: t.clientY };
+  }, { passive: true });
+  document.addEventListener("touchend", function (e) {
+    if (!touchStart) return;
+    var t = e.changedTouches[0];
+    var dx = t.clientX - touchStart.x;
+    var dy = t.clientY - touchStart.y;
+    touchStart = null;
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.8) return;
+    var idx = tabIndex(state.tab);
+    var nextIdx = idx + (dx < 0 ? 1 : -1);
+    if (nextIdx >= 0 && nextIdx < TABS.length) goToTab(TABS[nextIdx].id);
+  }, { passive: true });
+
+  // ---------- boot ----------
+  function initSubscriptions() {
+    db.collection("members").onSnapshot(function (snap) {
+      members = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
+        .sort(function (a, b) { return a.name.localeCompare(b.name, "ko"); });
+      dbReady = true;
+      render();
+    }, function () { dbFailed = true; render(); });
+
+    db.collection("books").onSnapshot(function (snap) {
+      books = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      render();
+    }, function () { dbFailed = true; render(); });
+
+    db.collection("activity").orderBy("ts", "desc").limit(8).onSnapshot(function (snap) {
+      activity = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      render();
+    }, function () {});
+  }
+
+  function boot() {
+    var local = loadLocalMember();
+    if (local && local.id && local.name) {
+      me = local;
+    }
+    render();
+
+    if (typeof firebase === "undefined" || FIREBASE_CONFIG.apiKey === "YOUR_API_KEY") {
+      // Firebase SDK가 로드되지 않았거나 FIREBASE_CONFIG를 아직 채우지 않은 상태.
+      dbFailed = true;
+      render();
+      return;
+    }
+
+    try {
+      firebase.initializeApp(FIREBASE_CONFIG);
+    } catch (e) {
+      // 이미 초기화된 경우(핫리로드 등) 무시
+    }
+
+    // 로그인 화면 없이, 각 방문자를 브라우저별로 조용히 구분만 해주는
+    // 익명 인증. 계정을 만들 필요도, 화면에 뭔가 뜨는 일도 없어요.
+    firebase.auth().signInAnonymously().then(function () {
+      db = firebase.firestore();
+      initSubscriptions();
+    }).catch(function () {
+      dbFailed = true;
+      render();
+    });
+  }
+
+  boot();
+})();
+</script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").catch(function () {});
+    });
+  }
+</script>
+</body>
+</html>
