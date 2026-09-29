@@ -407,18 +407,43 @@
     margin-bottom: 12px;
   }
   .member-chip-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .member-chip-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    background: var(--bg);
+    padding-right: 4px;
+  }
   .member-chip {
     font: inherit;
     font-weight: 600;
     font-size: 0.8rem;
-    padding: 6px 12px;
-    border-radius: 999px;
-    border: 1px solid var(--line-strong);
-    background: var(--bg);
+    padding: 6px 6px 6px 12px;
+    border-radius: 999px 0 0 999px;
+    border: none;
+    background: transparent;
     color: var(--ink);
     cursor: pointer;
   }
-  .member-chip:hover { border-color: var(--terracotta); color: var(--terracotta); }
+  .member-chip:hover { color: var(--terracotta); }
+  .member-chip-del {
+    font: inherit;
+    font-size: 0.78rem;
+    line-height: 1;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--ink-faint);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .member-chip-del:hover { background: var(--terracotta); color: #fff; }
 
   .banner {
     background: #f7e9e1;
@@ -698,6 +723,14 @@
     var input = document.getElementById("name-input");
     var name = (input.value || "").trim();
     if (!name) { input.focus(); return; }
+    // 대소문자/앞뒤 공백만 다른 같은 이름이 이미 있으면 새로 만들지 않고
+    // 그 사람으로 바로 등록해요. (jayden / Jayden 처럼 중복 회원이 생기는 걸 방지)
+    var normalized = name.toLowerCase();
+    var existing = members.find(function (m) { return (m.name || "").trim().toLowerCase() === normalized; });
+    if (existing) {
+      becomeMember({ id: existing.id, name: existing.name });
+      return;
+    }
     var id = genId();
     var record = { id: id, name: name };
     if (db) {
@@ -799,7 +832,10 @@
     if (!document.getElementById("identity-modal").hidden) {
       var list = document.getElementById("member-chip-list");
       list.innerHTML = members.map(function (m) {
-        return '<button type="button" class="member-chip" data-pick-member="' + esc(m.id) + '">' + esc(m.name) + "</button>";
+        return '<span class="member-chip-wrap">' +
+          '<button type="button" class="member-chip" data-pick-member="' + esc(m.id) + '">' + esc(m.name) + "</button>" +
+          '<button type="button" class="member-chip-del" data-delete-member="' + esc(m.id) + '" title="이 등록 삭제" aria-label="' + esc(m.name) + ' 등록 삭제">×</button>' +
+          "</span>";
       }).join("");
     }
   }
@@ -1056,6 +1092,17 @@
       document.getElementById("landing").hidden = true;
       document.getElementById("app").hidden = false;
       window.scrollTo(0, 0);
+      return;
+    }
+
+    var delMemberBtn = e.target.closest("[data-delete-member]");
+    if (delMemberBtn) {
+      var delId = delMemberBtn.getAttribute("data-delete-member");
+      var delMember = members.find(function (x) { return x.id === delId; });
+      var delLabel = delMember ? delMember.name : "이 등록";
+      if (window.confirm('"' + delLabel + '" 등록을 목록에서 삭제할까요?\n(등록했던 책이나 활동 기록은 그대로 남아요)')) {
+        if (db) db.collection("members").doc(delId).delete().catch(function () {});
+      }
       return;
     }
 
