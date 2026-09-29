@@ -5,14 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>서로서가</title>
 <meta name="description" content="독서모임 구성원끼리 책을 등록하고 서로 빌려주는 공유 서재">
-<meta name="theme-color" content="#7a2530">
+<meta name="theme-color" content="#c9603b">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="서로서가">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap">
 
 <!-- Firebase (compat SDK — same collection/doc/onSnapshot API shape used below) -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -21,106 +22,27 @@
 
 <style>
   :root {
-    --bg: #f5f2ec;
-    --surface: #faf8f4;
-    --surface-alt: #eeebe2;
-    --ink: #45403a;
-    --ink-soft: #7d766c;
-    --ink-faint: #a49c8f;
-    --line: #e0dbcd;
-    --line-strong: #cdc6b4;
-
-    --wine: #7a2530;
-    --wine-deep: #5c1c24;
-    --wine-tint: #f2e0de;
-
-    --clay: #c96f42;
-
-    --teal: #2e8c87;
-    --indigo: #4a5fa5;
-    --sky: #6ea8c9;
-
-    --forest: #4b6a4f;
-    --forest-deep: #33492f;
-    --forest-tint: #e3e8db;
-
-    --mustard: #b8863a;
-    --mustard-deep: #8f6621;
-    --mustard-tint: #f3e6cd;
-
-    --shadow-card: 0 1px 2px rgba(43, 33, 25, 0.06), 0 3px 10px rgba(43, 33, 25, 0.05);
-    --shadow-pop: 0 16px 36px rgba(43, 33, 25, 0.24);
-    --radius: 10px;
-    --radius-sm: 6px;
     color-scheme: light;
-  }
+    --bg: #f5f2ea;
+    --paper: #ffffff;
+    --paper-soft: #fffdf9;
+    --ink: #241f18;
+    --ink-soft: #6b6154;
+    --ink-faint: #a89d8c;
+    --line: #ece6d8;
+    --line-strong: #ddd4bf;
 
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #1e1c19;
-      --surface: #27241f;
-      --surface-alt: #302c25;
-      --ink: #f2e8d8;
-      --ink-soft: #c4b7a2;
-      --ink-faint: #8f8270;
-      --line: #4a3f30;
-      --line-strong: #5c4f3c;
+    --terracotta: #c9603b;
+    --terracotta-deep: #9c4a2c;
+    --teal: #2e9e86;
+    --teal-deep: #1f6a5a;
+    --gold: #f6c34c;
+    --gold-deep: #93701f;
 
-      --wine: #d97a82;
-      --wine-deep: #eb98a0;
-      --wine-tint: #402024;
-
-      --clay: #e2946a;
-
-      --teal: #5fc2ba;
-      --indigo: #8fa3d9;
-      --sky: #a8d4ea;
-
-      --forest: #8fb593;
-      --forest-deep: #aed1b0;
-      --forest-tint: #263524;
-
-      --mustard: #d9a95c;
-      --mustard-deep: #e8c27f;
-      --mustard-tint: #3d2f18;
-
-      --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 14px rgba(0, 0, 0, 0.3);
-      --shadow-pop: 0 18px 40px rgba(0, 0, 0, 0.55);
-      color-scheme: dark;
-    }
-  }
-
-  :root[data-theme="dark"] {
-    --bg: #1e1c19;
-    --surface: #27241f;
-    --surface-alt: #302c25;
-    --ink: #f2e8d8;
-    --ink-soft: #c4b7a2;
-    --ink-faint: #8f8270;
-    --line: #4a3f30;
-    --line-strong: #5c4f3c;
-
-    --wine: #d97a82;
-    --wine-deep: #eb98a0;
-    --wine-tint: #402024;
-
-    --clay: #e2946a;
-
-    --teal: #5fc2ba;
-    --indigo: #8fa3d9;
-    --sky: #a8d4ea;
-
-    --forest: #8fb593;
-    --forest-deep: #aed1b0;
-    --forest-tint: #263524;
-
-    --mustard: #d9a95c;
-    --mustard-deep: #e8c27f;
-    --mustard-tint: #3d2f18;
-
-    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 14px rgba(0, 0, 0, 0.3);
-    --shadow-pop: 0 18px 40px rgba(0, 0, 0, 0.55);
-    color-scheme: dark;
+    --shadow-card: 0 1px 2px rgba(36, 31, 24, 0.04), 0 8px 18px -12px rgba(36, 31, 24, 0.2);
+    --shadow-pop: 0 20px 44px -16px rgba(36, 31, 24, 0.28);
+    --radius: 16px;
+    --radius-sm: 10px;
   }
 
   * { box-sizing: border-box; }
@@ -130,28 +52,52 @@
   body {
     background: var(--bg);
     color: var(--ink);
-    font-family: "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif;
+    font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
     font-size: 15.5px;
     line-height: 1.5;
     padding-inline: 20px;
     padding-block: 26px 64px;
   }
 
-  h1, h2, h3 { margin: 0; text-wrap: balance; font-family: "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif; }
-  #app { max-width: 940px; margin: 0 auto; }
+  h1, h2, h3 { margin: 0; text-wrap: balance; }
+  #app { max-width: 1040px; margin: 0 auto; }
+
+  /* ---------- landing ---------- */
+  #landing {
+    margin: -26px -20px -64px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: var(--bg);
+  }
+  .landing-inner { max-width: 320px; width: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; }
+  .landing-mark { display: block; width: 72px; height: 60px; }
+  .landing-mark svg { display: block; width: 100%; height: 100%; }
+  .landing-word { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.01em; color: var(--ink); }
+  .landing-tag { font-size: 0.98rem; font-weight: 500; line-height: 1.6; color: var(--ink); text-wrap: balance; }
+  .landing-sub { font-size: 0.88rem; color: var(--ink-soft); line-height: 1.7; max-width: 28ch; }
+  .landing-cta {
+    margin-top: 6px; width: 100%; max-width: 260px;
+    background: var(--teal-deep); color: var(--paper-soft);
+    font: inherit; font-weight: 700; font-size: 0.92rem;
+    padding: 14px; border: none; border-radius: 12px; cursor: pointer;
+  }
+  .landing-cta:hover { background: var(--teal); }
+  .landing-meta { font-size: 0.76rem; color: var(--ink-faint); margin-top: 2px; }
 
   /* ---------- masthead ---------- */
-  .masthead { padding-bottom: 16px; }
+  .masthead { padding-bottom: 18px; }
   .brand { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-  .brand-left { display: flex; align-items: center; gap: 13px; }
-  .brand-mark svg { display: block; width: 42px; height: auto; }
-  .brand-name { font-weight: 700; font-size: 2.1rem; letter-spacing: 0.01em; color: var(--ink); }
+  .brand-left { display: flex; align-items: center; gap: 12px; }
+  .brand-mark svg { display: block; width: 38px; height: auto; }
+  .brand-name { font-weight: 800; font-size: 1.9rem; letter-spacing: -0.01em; color: var(--ink); }
   .brand-tag {
     margin-top: 3px;
     color: var(--ink-soft);
-    font-size: 0.78rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    font-size: 0.76rem;
+    letter-spacing: 0.1em;
     font-weight: 600;
   }
   .whoami { text-align: right; font-size: 0.84rem; color: var(--ink-soft); }
@@ -160,85 +106,67 @@
     margin-top: 3px;
     background: none;
     border: none;
-    color: var(--wine);
+    color: var(--terracotta-deep);
     text-decoration: underline;
     cursor: pointer;
     font: inherit;
     padding: 2px 0;
   }
-  .masthead-rule { height: 3px; background: var(--wine); margin-top: 16px; }
-  .masthead-rule-thin { height: 1px; background: var(--line-strong); margin-bottom: 16px; }
+  .masthead-rule-thin { height: 1px; background: var(--line-strong); margin-top: 16px; }
 
   /* ---------- issue line (stats) ---------- */
   .issue-line {
     font-size: 0.82rem;
     color: var(--ink-soft);
-    letter-spacing: 0.04em;
-    margin-bottom: 20px;
+    letter-spacing: 0.02em;
+    margin: 18px 0 22px;
     padding-bottom: 14px;
     border-bottom: 1px solid var(--line);
   }
   .issue-line b { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
   .issue-line .sep { margin: 0 10px; color: var(--line-strong); }
 
-  /* ---------- tabs, styled as a book's table of contents ---------- */
-  .tabs {
+  /* ---------- layout: vertical index + content ---------- */
+  .layout { display: flex; gap: 22px; align-items: flex-start; }
+  .idx-nav {
+    flex: none;
+    width: 84px;
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    overflow: hidden;
-    margin-bottom: 24px;
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
+    padding-top: 2px;
+    position: sticky;
+    top: 20px;
+    align-self: flex-start;
   }
-  .tab-btn {
+  .idx-item {
     display: flex;
-    align-items: baseline;
-    gap: 10px;
+    align-items: center;
+    gap: 7px;
     width: 100%;
     text-align: left;
     font: inherit;
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: var(--ink-faint);
     background: none;
     border: none;
-    border-bottom: 1px solid var(--line);
-    padding: 13px 16px;
+    padding: 11px 2px;
     cursor: pointer;
-    color: var(--ink-soft);
-    transition: background 0.15s, color 0.15s;
+    transition: color 0.15s;
   }
-  .tab-btn:last-child { border-bottom: none; }
-  .tab-btn:hover { background: var(--surface-alt); color: var(--ink); }
-  .tab-btn.is-active { color: var(--wine-deep); background: var(--wine-tint); }
-  .toc-num {
-    font-family: "JetBrains Mono", monospace;
-    font-size: 0.72rem;
-    color: var(--ink-faint);
-    flex: none;
-    letter-spacing: 0.04em;
-    align-self: center;
-  }
-  .tab-btn.is-active .toc-num { color: var(--wine); }
-  .toc-label { font-weight: 700; font-size: 0.98rem; white-space: nowrap; align-self: center; }
-  .toc-dots {
-    flex: 1 1 auto;
-    align-self: center;
-    height: 0;
-    border-bottom: 2px dotted var(--line-strong);
-    margin: 0 2px;
-    min-width: 14px;
-  }
-  .tab-btn.is-active .toc-dots { border-bottom-color: var(--wine); }
-  .toc-count {
-    font-family: "JetBrains Mono", monospace;
-    font-size: 0.82rem;
+  .idx-item::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: transparent; flex: none; }
+  .idx-item:hover { color: var(--ink); }
+  .idx-item.is-active { color: var(--ink); }
+  .idx-item.is-active::before { background: var(--terracotta); }
+  .idx-count {
+    margin-left: auto;
+    font-size: 0.66rem;
     font-weight: 600;
-    color: var(--ink-soft);
-    flex: none;
-    align-self: center;
+    color: var(--ink-faint);
     font-variant-numeric: tabular-nums;
   }
-  .tab-btn.is-active .toc-count { color: var(--wine-deep); }
+  .idx-item.is-active .idx-count { color: var(--terracotta-deep); }
+  #main { flex: 1; min-width: 0; }
 
   /* lightweight "page turn" feel when switching sections (tap or swipe) */
   @keyframes page-slide-in {
@@ -255,21 +183,21 @@
     .page-anim-fwd, .page-anim-rev { animation: none; }
   }
 
-  .tab-btn:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
-    outline: 2px solid var(--wine);
+  .idx-item:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--terracotta);
     outline-offset: 2px;
   }
 
   /* ---------- toolbar ---------- */
-  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
   .search-input {
-    flex: 1 1 220px;
+    flex: 1 1 200px;
     font: inherit;
-    font-size: 0.92rem;
+    font-size: 0.9rem;
     padding: 10px 14px;
     border: 1px solid var(--line);
     border-radius: var(--radius-sm);
-    background: var(--surface);
+    background: var(--paper);
     color: var(--ink);
   }
   .chip-group { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -277,21 +205,20 @@
     font: inherit;
     font-weight: 600;
     font-size: 0.8rem;
-    background: var(--surface);
+    background: var(--paper);
     border: 1px solid var(--line);
     color: var(--ink-soft);
     padding: 6px 12px;
     border-radius: 999px;
     cursor: pointer;
   }
-  .chip.is-active { background: var(--wine); border-color: var(--wine); color: var(--surface); }
+  .chip.is-active { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
 
   /* ---------- book grid & cards ---------- */
-  .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(252px, 1fr)); gap: 16px; }
+  .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
 
   .book-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
+    background: var(--paper);
     border-radius: var(--radius);
     box-shadow: var(--shadow-card);
     display: flex;
@@ -303,48 +230,43 @@
   .genre-chip {
     align-self: flex-start;
     font-weight: 700;
-    font-size: 0.66rem;
-    letter-spacing: 0.1em;
+    font-size: 0.64rem;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--ink-faint);
-    border: 1px solid var(--line-strong);
-    padding: 3px 9px;
-    border-radius: 999px;
+    color: var(--gold-deep);
   }
 
-  .book-title { font-weight: 700; font-size: 1.1rem; line-height: 1.4; color: var(--ink); }
+  .book-title { font-weight: 700; font-size: 1.05rem; line-height: 1.4; color: var(--ink); }
   .new-badge {
     display: inline-block;
-    font-family: "JetBrains Mono", monospace;
     font-size: 0.58rem;
-    font-weight: 600;
-    color: var(--wine);
-    border: 1px solid var(--wine);
+    font-weight: 700;
+    color: var(--terracotta);
+    border: 1px solid var(--terracotta);
     border-radius: 4px;
     padding: 1px 5px;
     margin-left: 6px;
     vertical-align: middle;
     transform: translateY(-2px);
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
   }
-  .book-meta { font-size: 0.85rem; color: var(--ink-soft); }
+  .book-meta { font-size: 0.84rem; color: var(--ink-soft); }
   .book-note {
-    font-size: 0.83rem;
+    font-size: 0.82rem;
     color: var(--ink-soft);
-    background: var(--surface-alt);
-    border-radius: 6px;
+    background: var(--bg);
+    border-radius: 8px;
     padding: 6px 10px;
     font-style: italic;
   }
   .status-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
-  .pill { font-size: 0.75rem; font-weight: 700; padding: 4px 11px; border-radius: 999px; letter-spacing: 0.01em; }
-  .pill.st-available { background: var(--forest-tint); color: var(--forest-deep); }
-  .pill.st-borrowed { background: var(--surface-alt); color: var(--ink-soft); border: 1px solid var(--line-strong); }
+  .pill { font-size: 0.74rem; font-weight: 700; padding: 4px 11px; border-radius: 999px; letter-spacing: 0.01em; }
+  .pill.st-available { background: #eaf3ef; color: var(--teal-deep); }
+  .pill.st-borrowed { background: var(--bg); color: var(--ink-soft); }
 
   .stamp {
-    font-family: "JetBrains Mono", monospace;
     font-size: 0.72rem;
-    font-weight: 500;
+    font-weight: 600;
     background: transparent;
     color: var(--ink-soft);
     border: 1px dashed var(--line-strong);
@@ -352,12 +274,12 @@
     padding: 3px 10px;
     font-variant-numeric: tabular-nums;
   }
-  .stamp.is-overdue { background: var(--wine); color: var(--surface); border-color: var(--wine); }
+  .stamp.is-overdue { background: var(--terracotta); color: #fff; border-color: var(--terracotta); }
 
   .borrower-line { font-size: 0.82rem; color: var(--ink-soft); }
-  .want-line { font-size: 0.8rem; color: var(--ink-faint); display: flex; align-items: center; gap: 4px; }
-  .want-line b { color: var(--mustard-deep); font-weight: 700; }
-  .want-line svg { color: var(--mustard); flex: none; }
+  .want-line { font-size: 0.78rem; color: var(--ink-faint); display: flex; align-items: center; gap: 4px; }
+  .want-line b { color: var(--gold-deep); font-weight: 700; }
+  .want-line svg { color: var(--gold); flex: none; }
 
   .card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 8px; }
   .btn {
@@ -366,28 +288,28 @@
     gap: 5px;
     font: inherit;
     font-weight: 700;
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     border-radius: var(--radius-sm);
     padding: 9px 14px;
     cursor: pointer;
     border: 1px solid var(--line-strong);
-    background: var(--surface);
+    background: var(--paper);
     color: var(--ink-soft);
     line-height: 1.1;
   }
-  .btn:hover { border-color: var(--wine); color: var(--wine); }
-  .btn.primary { background: var(--wine); border-color: var(--wine); color: var(--surface); }
-  .btn.primary:hover { background: var(--wine-deep); border-color: var(--wine-deep); color: var(--surface); }
+  .btn:hover { border-color: var(--terracotta); color: var(--terracotta); }
+  .btn.primary { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
+  .btn.primary:hover { background: var(--terracotta-deep); border-color: var(--terracotta-deep); color: #fff; }
   .btn.ghost { background: transparent; }
-  .btn.danger { color: var(--wine); border-color: var(--wine); background: transparent; }
+  .btn.danger { color: var(--terracotta); border-color: var(--terracotta); background: transparent; }
   .btn.want { color: var(--ink-soft); }
-  .btn.want svg { color: var(--mustard); }
-  .btn.want.is-on { background: var(--mustard-tint); border-color: var(--mustard); color: var(--mustard-deep); }
+  .btn.want svg { color: var(--gold); }
+  .btn.want.is-on { background: #fbf1da; border-color: var(--gold); color: var(--gold-deep); }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
   .inline-form {
     margin-top: 4px;
-    background: var(--surface-alt);
+    background: var(--bg);
     border-radius: var(--radius-sm);
     padding: 10px;
     display: flex;
@@ -398,42 +320,41 @@
   .inline-form label { font-size: 0.8rem; font-weight: 600; color: var(--ink-soft); }
   .inline-form input[type="date"] {
     font: inherit;
-    font-family: "JetBrains Mono", monospace;
     font-size: 0.85rem;
     padding: 6px 8px;
     border: 1px solid var(--line);
     border-radius: 6px;
-    background: var(--surface);
+    background: var(--paper);
     color: var(--ink);
+    font-variant-numeric: tabular-nums;
   }
 
   .empty-state {
     text-align: center;
     color: var(--ink-soft);
-    padding: 48px 16px;
+    padding: 44px 16px;
     border: 1px dashed var(--line-strong);
     border-radius: var(--radius);
     grid-column: 1 / -1;
   }
-  .empty-state p:first-child { font-weight: 700; font-size: 1.05rem; color: var(--ink); margin-bottom: 6px; }
+  .empty-state p:first-child { font-weight: 700; font-size: 1rem; color: var(--ink); margin-bottom: 6px; }
 
   /* ---------- my shelf form ---------- */
   .panel {
-    background: var(--surface);
-    border: 1px solid var(--line);
+    background: var(--paper);
     border-radius: var(--radius);
     padding: 18px;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     box-shadow: var(--shadow-card);
   }
-  .panel h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 14px; color: var(--ink); }
+  .panel h2 { font-size: 1.02rem; font-weight: 700; margin-bottom: 14px; color: var(--ink); }
   .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .field { display: flex; flex-direction: column; gap: 4px; }
   .field.span-2 { grid-column: 1 / -1; }
   .field label { font-size: 0.8rem; font-weight: 600; color: var(--ink-soft); }
   .field input, .field textarea {
     font: inherit;
-    font-size: 0.92rem;
+    font-size: 0.9rem;
     padding: 9px 11px;
     border: 1px solid var(--line);
     border-radius: var(--radius-sm);
@@ -446,33 +367,32 @@
   @media (max-width: 480px) { .field-grid { grid-template-columns: 1fr; } }
 
   .section-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
-  .section-heading h2 { font-size: 1.2rem; font-weight: 700; color: var(--ink); }
+  .section-heading h2 { font-size: 1.15rem; font-weight: 700; color: var(--ink); }
 
   /* ---------- activity ---------- */
-  .activity-list { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
-  .activity-row { display: flex; justify-content: space-between; gap: 14px; padding: 13px 16px; border-bottom: 1px solid var(--line); font-size: 0.87rem; }
+  .activity-list { display: flex; flex-direction: column; border-radius: var(--radius); overflow: hidden; background: var(--paper); box-shadow: var(--shadow-card); }
+  .activity-row { display: flex; justify-content: space-between; gap: 14px; padding: 13px 16px; border-bottom: 1px solid var(--line); font-size: 0.86rem; }
   .activity-row:last-child { border-bottom: none; }
-  .activity-time { font-family: "JetBrains Mono", monospace; font-size: 0.72rem; color: var(--ink-faint); white-space: nowrap; }
+  .activity-time { font-size: 0.72rem; color: var(--ink-faint); white-space: nowrap; font-variant-numeric: tabular-nums; }
 
   /* ---------- identity modal ---------- */
   .modal-backdrop {
     position: fixed; inset: 0;
-    background: rgba(43, 33, 25, 0.55);
+    background: rgba(36, 31, 24, 0.5);
     display: flex; align-items: center; justify-content: center;
     padding: 20px;
     z-index: 50;
   }
   .modal-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
+    background: var(--paper);
     border-radius: var(--radius);
     box-shadow: var(--shadow-pop);
     padding: 28px;
     max-width: 400px;
     width: 100%;
   }
-  .modal-card h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; color: var(--ink); }
-  .modal-card p { color: var(--ink-soft); font-size: 0.88rem; margin-bottom: 16px; }
+  .modal-card h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; color: var(--ink); }
+  .modal-card p { color: var(--ink-soft); font-size: 0.87rem; margin-bottom: 16px; }
   .modal-card input {
     font: inherit;
     font-size: 0.95rem;
@@ -492,16 +412,16 @@
     padding: 6px 12px;
     border-radius: 999px;
     border: 1px solid var(--line-strong);
-    background: var(--surface-alt);
+    background: var(--bg);
     color: var(--ink);
     cursor: pointer;
   }
-  .member-chip:hover { border-color: var(--wine); color: var(--wine); }
+  .member-chip:hover { border-color: var(--terracotta); color: var(--terracotta); }
 
   .banner {
-    background: var(--wine-tint);
-    color: var(--wine-deep);
-    border: 1px solid var(--wine);
+    background: #f7e9e1;
+    color: var(--terracotta-deep);
+    border: 1px solid var(--terracotta);
     border-radius: var(--radius-sm);
     padding: 10px 14px;
     font-size: 0.85rem;
@@ -513,23 +433,38 @@
   footer.credit {
     text-align: center;
     color: var(--ink-faint);
-    font-size: 0.74rem;
-    letter-spacing: 0.08em;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    margin-top: 44px;
+    margin-top: 40px;
   }
 
-  @media (max-width: 460px) {
-    .brand-name { font-size: 1.6rem; }
-    .brand-mark svg { width: 36px; height: auto; }
+  @media (max-width: 520px) {
+    .brand-name { font-size: 1.5rem; }
+    .brand-mark svg { width: 32px; height: auto; }
     .whoami { text-align: left; }
     .brand { flex-direction: column; align-items: flex-start; }
+    .layout { gap: 14px; }
+    .idx-nav { width: 64px; }
+    .idx-item { font-size: 0.7rem; padding: 10px 0; }
+    .idx-count { display: none; }
   }
 </style>
 </head>
 <body>
 
-<div id="app">
+<div id="landing">
+  <div class="landing-inner">
+    <span class="landing-mark" id="landing-mark"></span>
+    <div class="landing-word">서로서가</div>
+    <div class="landing-tag">우리가 함께 만드는 작은 서재</div>
+    <p class="landing-sub">각자의 책장 속에 잠들어 있던 책들이 모이면 작은 서재가 됩니다</p>
+    <button class="landing-cta" type="button" id="landing-cta">서재 둘러보기</button>
+    <p class="landing-meta">이름만 알려주시면 바로 시작할 수 있어요</p>
+  </div>
+</div>
+
+<div id="app" hidden>
   <div class="masthead">
     <div class="brand">
       <div class="brand-left">
@@ -541,40 +476,41 @@
       </div>
       <div class="whoami" id="whoami"></div>
     </div>
-    <div class="masthead-rule"></div>
     <div class="masthead-rule-thin"></div>
   </div>
 
   <div id="db-banner"></div>
   <div class="issue-line" id="issue-line"></div>
 
-  <nav class="tabs" id="tabs"></nav>
+  <div class="layout">
+    <nav class="idx-nav" id="tabs"></nav>
 
-  <main id="main">
-    <section id="view-all">
-      <div class="toolbar">
-        <input type="text" id="search-input" class="search-input" placeholder="제목, 저자, 소장자로 검색" autocomplete="off">
-        <div class="chip-group" id="status-filter"></div>
-      </div>
-      <div class="book-grid" id="all-grid"></div>
-    </section>
+    <main id="main">
+      <section id="view-all">
+        <div class="toolbar">
+          <input type="text" id="search-input" class="search-input" placeholder="제목, 저자, 소장자로 검색" autocomplete="off">
+          <div class="chip-group" id="status-filter"></div>
+        </div>
+        <div class="book-grid" id="all-grid"></div>
+      </section>
 
-    <section id="view-mine" hidden>
-      <div class="panel" id="book-form-panel"></div>
-      <div class="section-heading"><h2>내 서재</h2></div>
-      <div class="book-grid" id="mine-grid"></div>
-    </section>
+      <section id="view-mine" hidden>
+        <div class="panel" id="book-form-panel"></div>
+        <div class="section-heading"><h2>내 서재</h2></div>
+        <div class="book-grid" id="mine-grid"></div>
+      </section>
 
-    <section id="view-wish" hidden>
-      <div class="section-heading"><h2>찜한 책</h2></div>
-      <div class="book-grid" id="wish-grid"></div>
-    </section>
+      <section id="view-wish" hidden>
+        <div class="section-heading"><h2>찜한 책</h2></div>
+        <div class="book-grid" id="wish-grid"></div>
+      </section>
 
-    <section id="view-activity" hidden>
-      <div class="section-heading"><h2>최근 활동</h2></div>
-      <div id="activity-wrap"></div>
-    </section>
-  </main>
+      <section id="view-activity" hidden>
+        <div class="section-heading"><h2>최근 활동</h2></div>
+        <div id="activity-wrap"></div>
+      </section>
+    </main>
+  </div>
 
   <footer class="credit">서로서가 · 독서모임 도서 공유</footer>
 </div>
@@ -607,18 +543,14 @@
     appId: "1:489636423096:web:34cebaad928911ab749b4d"
   };
 
+  // 4개의 책이 서로 기대어 선 모습 — 왼쪽 세 권은 오른쪽으로, 마지막 한 권은
+  // 왼쪽으로 살짝 기울어 서 있는 최종 확정 로고 (한날 팔레트 계승).
   var LOGO_SVG =
-    '<svg viewBox="0 0 68 64" width="42" height="39.5" aria-hidden="true" focusable="false">' +
-    '<rect x="8" y="26" width="11" height="32" rx="3" style="fill:var(--teal)"></rect>' +
-    '<rect x="14.6" y="29" width="1.6" height="26" rx="0.8" fill="#fffdf8" opacity="0.26"></rect>' +
-    '<rect x="21" y="21" width="11" height="37" rx="3" style="fill:var(--indigo)"></rect>' +
-    '<rect x="27.6" y="24" width="1.6" height="31" rx="0.8" fill="#fffdf8" opacity="0.24"></rect>' +
-    '<rect x="34" y="16" width="11" height="42" rx="3" style="fill:var(--sky)"></rect>' +
-    '<rect x="40.6" y="19" width="1.6" height="36" rx="0.8" fill="#fffdf8" opacity="0.26"></rect>' +
-    '<g transform="rotate(-26 53.5 58)">' +
-    '<rect x="48" y="29" width="11" height="29" rx="3" style="fill:var(--clay)"></rect>' +
-    '<rect x="54.6" y="32" width="1.6" height="23" rx="0.8" fill="#fffdf8" opacity="0.28"></rect>' +
-    "</g>" +
+    '<svg viewBox="0 0 128 100" aria-hidden="true" focusable="false">' +
+    '<rect x="12" y="18" width="15" height="64" rx="6" fill="#F2703E" transform="rotate(12 19.5 82)"></rect>' +
+    '<rect x="29" y="18" width="15" height="64" rx="6" fill="#F6C34C" transform="rotate(12 36.5 82)"></rect>' +
+    '<rect x="46" y="18" width="15" height="64" rx="6" fill="#2E9E86" transform="rotate(12 53.5 82)"></rect>' +
+    '<rect x="75" y="34" width="15" height="48" rx="6" fill="#F2703E" transform="rotate(-14 82.5 82)"></rect>' +
     "</svg>";
 
   var HEART_OUTLINE = '<svg viewBox="0 0 20 20" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><circle cx="7" cy="7.3" r="3.2"></circle><circle cx="13" cy="7.3" r="3.2"></circle><polygon points="3.4,9.4 16.6,9.4 10,16.3"></polygon></svg>';
@@ -626,10 +558,10 @@
 
   var GENRE_SUGGESTIONS = ["소설", "에세이", "인문", "자기계발", "시/문학", "과학", "역사", "경제/경영", "예술", "만화", "기타"];
   var TABS = [
-    { id: "all", label: "전체 서가", icon: "all" },
+    { id: "all", label: "전체", icon: "all" },
     { id: "mine", label: "내 서재", icon: "mine" },
     { id: "wish", label: "찜한 책", icon: "wish" },
-    { id: "activity", label: "최근 활동", icon: "activity" }
+    { id: "activity", label: "활동", icon: "activity" }
   ];
 
   var db = null;
@@ -849,6 +781,8 @@
   function render() {
     withPreservedFocus(function () {
       document.getElementById("brand-mark").innerHTML = LOGO_SVG;
+      var landingMark = document.getElementById("landing-mark");
+      if (landingMark) landingMark.innerHTML = LOGO_SVG;
       renderWhoami();
       renderBanner();
       renderIssueLine();
@@ -910,13 +844,10 @@
   function renderTabs() {
     var el = document.getElementById("tabs");
     var counts = tabCounts();
-    el.innerHTML = TABS.map(function (t, i) {
-      var num = String(i + 1).padStart(2, "0");
-      return '<button type="button" class="tab-btn' + (state.tab === t.id ? " is-active" : "") + '" data-tab="' + t.id + '">' +
-        '<span class="toc-num">' + num + '</span>' +
-        '<span class="toc-label">' + t.label + '</span>' +
-        '<span class="toc-dots"></span>' +
-        '<span class="toc-count">' + counts[t.id] + '</span>' +
+    el.innerHTML = TABS.map(function (t) {
+      return '<button type="button" class="idx-item' + (state.tab === t.id ? " is-active" : "") + '" data-tab="' + t.id + '">' +
+        '<span class="idx-label">' + t.label + '</span>' +
+        '<span class="idx-count">' + counts[t.id] + '</span>' +
         '</button>';
     }).join("");
     TABS.forEach(function (t) {
@@ -1128,6 +1059,14 @@
 
   // ---------- events ----------
   document.addEventListener("click", function (e) {
+    var landingCta = e.target.closest("#landing-cta");
+    if (landingCta) {
+      document.getElementById("landing").hidden = true;
+      document.getElementById("app").hidden = false;
+      window.scrollTo(0, 0);
+      return;
+    }
+
     var pickBtn = e.target.closest("[data-pick-member]");
     if (pickBtn) {
       var id = pickBtn.getAttribute("data-pick-member");
@@ -1319,3 +1258,4 @@
 </script>
 </body>
 </html>
+
