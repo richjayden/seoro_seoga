@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#c9603b">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="서로서가">
@@ -202,16 +202,6 @@
 
   /* ---------- toolbar ---------- */
   .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
-  .search-input {
-    flex: 1 1 200px;
-    font: inherit;
-    font-size: 0.9rem;
-    padding: 10px 14px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-sm);
-    background: var(--paper);
-    color: var(--ink);
-  }
   .chip-group { display: flex; gap: 6px; flex-wrap: wrap; }
   .chip {
     font: inherit;
@@ -500,7 +490,6 @@
     <main id="main">
       <section id="view-all">
         <div class="toolbar">
-          <input type="text" id="search-input" class="search-input" placeholder="제목, 저자, 소장자로 검색" autocomplete="off">
           <div class="chip-group" id="status-filter"></div>
         </div>
         <div class="book-grid" id="all-grid"></div>
@@ -586,7 +575,6 @@
 
   var state = {
     tab: "all",
-    search: "",
     statusFilter: "all", // all | available | borrowed
     borrowOpenFor: {},   // bookId -> default due date string
     editingBookId: null, // null | "new" | bookId
@@ -970,25 +958,17 @@
     );
   }
 
-  function matchesSearch(book, q) {
-    if (!q) return true;
-    q = q.toLowerCase();
-    return (book.title || "").toLowerCase().indexOf(q) !== -1 ||
-      (book.author || "").toLowerCase().indexOf(q) !== -1 ||
-      (book.ownerName || "").toLowerCase().indexOf(q) !== -1;
-  }
-
   function renderAllView() {
     statusFilterChips();
     var grid = document.getElementById("all-grid");
     if (!dbReady) { grid.innerHTML = '<div class="loading-note">불러오는 중…</div>'; return; }
     var list = books.filter(function (b) {
       if (state.statusFilter !== "all" && b.status !== state.statusFilter) return false;
-      return matchesSearch(b, state.search);
+      return true;
     }).slice().sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
 
     if (!list.length) {
-      grid.innerHTML = '<div class="empty-state"><p>표시할 책이 없어요</p><p>검색어나 필터를 확인해 보세요</p></div>';
+      grid.innerHTML = '<div class="empty-state"><p>표시할 책이 없어요</p><p>필터를 확인해 보세요</p></div>';
       return;
     }
     grid.innerHTML = list.map(function (b) { return bookCardHTML(b); }).join("");
@@ -1162,11 +1142,6 @@
   });
 
   document.addEventListener("input", function (e) {
-    if (e.target.id === "search-input") {
-      state.search = e.target.value;
-      render();
-      return;
-    }
     // Keep the in-progress add/edit form synced to state so a re-render
     // triggered by another member's action (a live db update) never
     // wipes out text this person is mid-typing.
