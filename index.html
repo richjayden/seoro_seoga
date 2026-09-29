@@ -226,7 +226,8 @@
   .chip.is-active { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
 
   /* ---------- book grid & cards ---------- */
-  .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+  .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+  #all-grid.book-grid { gap: 8px; }
 
   .book-card {
     background: var(--paper);
@@ -236,7 +237,7 @@
     flex-direction: column;
     min-width: 0;
   }
-  .card-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .card-body { padding: 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
 
   .genre-chip {
     align-self: flex-start;
@@ -317,6 +318,27 @@
   .btn.want svg { color: var(--gold); }
   .btn.want.is-on { background: #fbf1da; border-color: var(--gold); color: var(--gold-deep); }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ---------- compact card (전체 탭: 둘러보기 전용, 더 많이 보이게) ---------- */
+  .book-card.is-compact .card-body { padding: 11px 13px; gap: 3px; }
+  .book-card.is-compact .book-title { font-size: 0.94rem; }
+  .book-card.is-compact .book-meta { font-size: 0.78rem; }
+  .book-card.is-compact .genre-chip { font-size: 0.6rem; }
+  .book-card.is-compact .book-note.is-clamp {
+    background: none;
+    padding: 0;
+    font-style: normal;
+    font-size: 0.78rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .book-card.is-compact .status-row { margin-top: 0; gap: 6px; }
+  .book-card.is-compact .pill { font-size: 0.68rem; padding: 3px 9px; }
+  .book-card.is-compact .stamp { font-size: 0.66rem; padding: 2px 8px; }
+  .book-card.is-compact .want-line { font-size: 0.72rem; }
+  .book-card.is-compact .card-actions { gap: 6px; padding-top: 5px; }
+  .book-card.is-compact .btn { padding: 6px 11px; font-size: 0.74rem; }
 
   .inline-form {
     margin-top: 4px;
@@ -928,7 +950,10 @@
     }).join("");
   }
 
-  function bookCardHTML(book) {
+  // compact: 전체 서가(둘러보기 전용) 탭에서 쓰는 축약형 카드. 여기선 등록/수정을
+  // 하지 않으니 메모를 한 줄로 줄이고, 내 책이어도 수정·삭제 버튼은 숨겨서
+  // (그건 "내 서재" 탭의 역할) 한 화면에 더 많은 책이 보이게 해요.
+  function bookCardHTML(book, compact) {
     var isMine = !!me && book.ownerId === me.id;
     var isBorrowedByMe = !!me && book.borrowerId === me.id;
     var wantList = book.wantList || [];
@@ -947,13 +972,16 @@
         : '<span class="stamp">' + fmtDate(book.dueDate) + " 반납예정</span>";
     }
 
-    var borrowerLine = book.status === "borrowed"
+    var borrowerLine = (!compact && book.status === "borrowed")
       ? '<p class="borrower-line">대출자: ' + esc(book.borrowerName) + (isBorrowedByMe ? " (나)" : "") + "</p>"
       : "";
 
     var wantLine = "";
     if (wantList.length) {
-      wantLine = '<p class="want-line">' + HEART_FILLED + " <b>" + wantList.length + "</b> · " + wantList.map(function (w) { return esc(w.name); }).join(", ") + "</p>";
+      wantLine = compact
+        ? '<p class="want-line">' + HEART_FILLED + " <b>" + wantList.length + "</b>"
+        : '<p class="want-line">' + HEART_FILLED + " <b>" + wantList.length + "</b> · " + wantList.map(function (w) { return esc(w.name); }).join(", ") + "</p>";
+      if (compact) wantLine += "</p>";
     }
 
     var heartIcon = wantedByMe ? HEART_FILLED : HEART_OUTLINE;
@@ -961,10 +989,15 @@
 
     var actions = "";
     if (isMine) {
-      actions = '<button type="button" class="btn ghost" data-action="edit" data-id="' + book.id + '">수정</button>' +
-        '<button type="button" class="btn danger" data-action="delete" data-id="' + book.id + '">삭제</button>';
-      if (book.status === "borrowed") {
-        actions += '<button type="button" class="btn" data-action="force-return" data-id="' + book.id + '">반납 처리</button>';
+      if (compact) {
+        // 전체 탭에서는 관리 버튼 없이 상태만 보여주고, 편집은 "내 서재"에서.
+        actions = "";
+      } else {
+        actions = '<button type="button" class="btn ghost" data-action="edit" data-id="' + book.id + '">수정</button>' +
+          '<button type="button" class="btn danger" data-action="delete" data-id="' + book.id + '">삭제</button>';
+        if (book.status === "borrowed") {
+          actions += '<button type="button" class="btn" data-action="force-return" data-id="' + book.id + '">반납 처리</button>';
+        }
       }
     } else if (book.status === "available") {
       actions = '<button type="button" class="btn primary" data-action="open-borrow" data-id="' + book.id + '">대출하기</button>' + wantBtn;
@@ -986,17 +1019,24 @@
         "</div>";
     }
 
+    var noteHTML = "";
+    if (book.note) {
+      noteHTML = compact
+        ? '<p class="book-note is-clamp">' + esc(book.note) + "</p>"
+        : '<p class="book-note">' + esc(book.note) + "</p>";
+    }
+
     return (
-      '<article class="book-card">' +
+      '<article class="book-card' + (compact ? " is-compact" : "") + '">' +
       '<div class="card-body">' +
       '<span class="genre-chip">' + esc(book.genre || "미분류") + "</span>" +
       '<h3 class="book-title">' + esc(book.title) + (isNew ? '<span class="new-badge">NEW</span>' : "") + "</h3>" +
       '<p class="book-meta">' + esc(book.author || "저자 미상") + " · 소장: " + esc(book.ownerName) + (isMine ? " (나)" : "") + "</p>" +
-      (book.note ? '<p class="book-note">' + esc(book.note) + "</p>" : "") +
+      noteHTML +
       '<div class="status-row">' + statusPill + stamp + "</div>" +
       borrowerLine +
       wantLine +
-      '<div class="card-actions">' + actions + "</div>" +
+      (actions ? '<div class="card-actions">' + actions + "</div>" : "") +
       inlineBorrowForm +
       "</div>" +
       "</article>"
@@ -1016,7 +1056,7 @@
       grid.innerHTML = '<div class="empty-state"><p>표시할 책이 없어요</p><p>필터를 확인해 보세요</p></div>';
       return;
     }
-    grid.innerHTML = list.map(function (b) { return bookCardHTML(b); }).join("");
+    grid.innerHTML = list.map(function (b) { return bookCardHTML(b, true); }).join("");
   }
 
   function bookFormHTML() {
