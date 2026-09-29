@@ -12,6 +12,18 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="서로서가">
+
+<!-- 링크 공유 시 카카오톡/문자/SNS 등에서 보이는 미리보기 카드 -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="서로서가">
+<meta property="og:title" content="서로서가 — 우리가 함께 만드는 작은 서재">
+<meta property="og:description" content="각자의 책장 속에 잠들어 있던 책들이 모이면 작은 서재가 됩니다">
+<meta property="og:image" content="https://seoro-seoga.vercel.app/og-image.png">
+<meta property="og:url" content="https://seoro-seoga.vercel.app/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="서로서가 — 우리가 함께 만드는 작은 서재">
+<meta name="twitter:description" content="각자의 책장 속에 잠들어 있던 책들이 모이면 작은 서재가 됩니다">
+<meta name="twitter:image" content="https://seoro-seoga.vercel.app/og-image.png">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap">
 
@@ -77,7 +89,7 @@
   .landing-mark svg { display: block; width: 100%; height: 100%; }
   .landing-word { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.01em; color: var(--ink); }
   .landing-tag { font-size: 0.98rem; font-weight: 500; line-height: 1.6; color: var(--ink); text-wrap: balance; }
-  .landing-sub { font-size: 0.88rem; color: var(--ink-soft); line-height: 1.7; max-width: 28ch; }
+  .landing-sub { font-size: 0.88rem; color: var(--ink-soft); line-height: 1.7; max-width: 300px; }
   .landing-cta {
     margin-top: 6px; width: 100%; max-width: 260px;
     background: var(--teal-deep); color: var(--paper-soft);
@@ -91,7 +103,7 @@
   .masthead { padding-bottom: 18px; }
   .brand { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
   .brand-left { display: flex; align-items: center; gap: 12px; }
-  .brand-mark svg { display: block; width: 38px; height: auto; }
+  .brand-mark svg { display: block; width: 58px; height: auto; }
   .brand-name { font-weight: 800; font-size: 1.9rem; letter-spacing: -0.01em; color: var(--ink); }
   .brand-tag {
     margin-top: 3px;
@@ -130,9 +142,10 @@
   .layout { display: flex; gap: 22px; align-items: flex-start; }
   .idx-nav {
     flex: none;
-    width: 84px;
+    width: 108px;
     display: flex;
     flex-direction: column;
+    gap: 3px;
     padding-top: 2px;
     position: sticky;
     top: 20px;
@@ -141,26 +154,25 @@
   .idx-item {
     display: flex;
     align-items: center;
-    gap: 7px;
+    justify-content: space-between;
+    gap: 8px;
     width: 100%;
     text-align: left;
     font: inherit;
     font-weight: 700;
-    font-size: 0.78rem;
-    color: var(--ink-faint);
+    font-size: 0.92rem;
+    color: var(--ink-soft);
     background: none;
     border: none;
-    padding: 11px 2px;
+    border-radius: 11px;
+    padding: 11px 13px;
     cursor: pointer;
-    transition: color 0.15s;
+    transition: background 0.15s, color 0.15s;
   }
-  .idx-item::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: transparent; flex: none; }
-  .idx-item:hover { color: var(--ink); }
-  .idx-item.is-active { color: var(--ink); }
-  .idx-item.is-active::before { background: var(--terracotta); }
+  .idx-item:hover { background: var(--bg); }
+  .idx-item.is-active { background: #f4e2d8; color: var(--terracotta-deep); }
   .idx-count {
-    margin-left: auto;
-    font-size: 0.66rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: var(--ink-faint);
     font-variant-numeric: tabular-nums;
@@ -441,12 +453,12 @@
 
   @media (max-width: 520px) {
     .brand-name { font-size: 1.5rem; }
-    .brand-mark svg { width: 32px; height: auto; }
+    .brand-mark svg { width: 44px; height: auto; }
     .whoami { text-align: left; }
     .brand { flex-direction: column; align-items: flex-start; }
     .layout { gap: 14px; }
-    .idx-nav { width: 64px; }
-    .idx-item { font-size: 0.7rem; padding: 10px 0; }
+    .idx-nav { width: 84px; }
+    .idx-item { font-size: 0.82rem; padding: 10px 9px; }
     .idx-count { display: none; }
   }
 </style>
@@ -458,8 +470,8 @@
     <span class="landing-mark" id="landing-mark"></span>
     <div class="landing-word">서로서가</div>
     <div class="landing-tag">우리가 함께 만드는 작은 서재</div>
-    <p class="landing-sub">각자의 책장 속에 잠들어 있던 책들이 모이면 작은 서재가 됩니다</p>
-    <button class="landing-cta" type="button" id="landing-cta">서재 둘러보기</button>
+    <p class="landing-sub"><span style="white-space: nowrap;">각자의 책장 속에 잠들어 있던 책들이</span><br>모이면 작은 서재가 됩니다</p>
+    <button class="landing-cta" type="button" id="landing-cta">서재 문열기</button>
     <p class="landing-meta">이름만 알려주시면 바로 시작할 수 있어요</p>
   </div>
 </div>
@@ -1196,11 +1208,24 @@
   }, { passive: true });
 
   // ---------- boot ----------
+  // Firebase가 잠시 끊겼던 동안(예: 설정 오류) 로컬에만 이름을 저장해둔 채
+  // 활동한 사람은 members 컬렉션에 실제 문서가 없을 수 있다. 최초 스냅샷에서
+  // 그런 상태를 발견하면, 조용히 한 번 다시 등록해 회원 수 집계가 맞도록 한다.
+  var memberSyncAttempted = false;
+  function syncLocalMemberIfMissing() {
+    if (!me || memberSyncAttempted) return;
+    if (members.some(function (m) { return m.id === me.id; })) return;
+    memberSyncAttempted = true;
+    db.collection("members").doc(me.id).set({ name: me.name, createdAt: Date.now() })
+      .catch(function () { memberSyncAttempted = false; });
+  }
+
   function initSubscriptions() {
     db.collection("members").onSnapshot(function (snap) {
       members = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
         .sort(function (a, b) { return a.name.localeCompare(b.name, "ko"); });
       dbReady = true;
+      syncLocalMemberIfMissing();
       render();
     }, function () { dbFailed = true; render(); });
 
