@@ -121,7 +121,7 @@
     letter-spacing: 0.1em;
     font-weight: 600;
   }
-  .whoami { text-align: right; font-size: 0.84rem; color: var(--ink-soft); }
+  .whoami { text-align: right; font-size: 0.84rem; color: var(--ink-soft); max-width: 220px; }
   .whoami strong { color: var(--ink); font-weight: 700; }
   .whoami button {
     margin-top: 3px;
@@ -133,6 +133,22 @@
     font: inherit;
     padding: 2px 0;
   }
+  .whoami .whoami-name {
+    background: none;
+    border: none;
+    color: inherit;
+    text-decoration: none;
+    font: inherit;
+    cursor: pointer;
+    padding: 2px 0;
+  }
+  .whoami-quote {
+    margin-top: 4px;
+    font-size: 0.76rem;
+    font-style: italic;
+    color: var(--ink-faint);
+    line-height: 1.5;
+  }
   .masthead-rule-thin { height: 1px; background: var(--line-strong); margin-top: 16px; }
 
   /* ---------- issue line (stats) ---------- */
@@ -143,9 +159,15 @@
     margin: 18px 0 22px;
     padding-bottom: 14px;
     border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
+  .issue-line::-webkit-scrollbar { display: none; }
   .issue-line b { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
-  .issue-line .sep { margin: 0 10px; color: var(--line-strong); }
+  .issue-line .sep { margin: 0 10px; color: var(--line-strong); flex: none; }
 
   /* ---------- layout: vertical index + content ---------- */
   .layout { display: flex; gap: 22px; align-items: flex-start; }
@@ -385,7 +407,7 @@
   .field { display: flex; flex-direction: column; gap: 4px; }
   .field.span-2 { grid-column: 1 / -1; }
   .field label { font-size: 0.8rem; font-weight: 600; color: var(--ink-soft); }
-  .field input, .field textarea {
+  .field input, .field textarea, .field select {
     font: inherit;
     font-size: 0.9rem;
     padding: 9px 11px;
@@ -396,6 +418,7 @@
     width: 100%;
   }
   .field textarea { resize: vertical; min-height: 52px; }
+  .field select { appearance: auto; }
   .panel-actions { display: flex; gap: 8px; margin-top: 14px; }
   @media (max-width: 480px) { .field-grid { grid-template-columns: 1fr; } }
 
@@ -500,12 +523,14 @@
   @media (max-width: 520px) {
     .brand-name { font-size: 1.5rem; }
     .brand-mark svg { width: 44px; height: auto; }
-    .whoami { text-align: left; }
+    .whoami { text-align: left; max-width: none; }
     .brand { flex-direction: column; align-items: flex-start; }
     .layout { gap: 14px; }
     .idx-nav { width: 84px; }
     .idx-item { font-size: 0.82rem; padding: 10px 9px; }
     .idx-count { display: none; }
+    .issue-line { font-size: 0.74rem; }
+    .issue-line .sep { margin: 0 6px; }
   }
 </style>
 </head>
@@ -614,6 +639,37 @@
   var HEART_FILLED = '<svg viewBox="0 0 20 20" width="13" height="13" fill="currentColor"><circle cx="7" cy="7.3" r="3.8"></circle><circle cx="13" cy="7.3" r="3.8"></circle><polygon points="3.2,9.3 16.8,9.3 10,16.6"></polygon></svg>';
 
   var GENRE_SUGGESTIONS = ["소설", "에세이", "인문", "자기계발", "시/문학", "과학", "역사", "경제/경영", "예술", "만화", "기타"];
+
+  // 마스트헤드에 하루에 한 번씩 바뀌는 책/독서에 관한 짧은 문장을 보여줘요.
+  // 최근 소설의 특정 번역판 문장을 그대로 가져오면 번역자 저작권 문제가 생길
+  // 수 있어서, 저자가 뚜렷하고 오래 회자돼온 짧은 경구 위주로 골랐어요.
+  var QUOTES = [
+    "책은 우리 안의 얼어붙은 바다를 깨는 도끼여야 한다 — 프란츠 카프카",
+    "한 권의 책을 읽음으로써 삶에서 새로운 시대를 본 사람이 있다 — 헨리 데이비드 소로",
+    "책은 마음의 양식이다 — 소크라테스",
+    "좋은 책을 읽는 것은 지난 세기의 가장 훌륭한 사람들과 대화를 나누는 것과 같다 — 르네 데카르트",
+    "오늘의 나를 만든 것은 우리 마을의 도서관이었다 — 빌 게이츠",
+    "책을 사랑하는 사람에게는 결코 외로운 밤이 없다 — 앤드류 랭",
+    "독서는 정신에 있어서 운동과 같은 것이다 — 조지프 애디슨",
+    "책이 없는 방은 영혼이 없는 육체와 같다 — 키케로",
+    "많이 읽되, 많은 것을 읽지는 말라 — 플리니우스",
+    "책 속에 길이 있다",
+    "하루라도 책을 읽지 않으면 입 안에 가시가 돋는다 — 안중근",
+    "책은 인류가 쌓아온 경험의 보고다",
+    "가장 훌륭한 여행은 책 속에 있다",
+    "한 권의 책, 한 자루의 펜, 한 명의 아이가 세상을 바꿀 수 있다 — 말랄라 유사프자이",
+    "당신이 정말로 사랑하는 것의 이상한 이끌림에 조용히 끌려가십시오. 그것은 당신을 잘못된 길로 인도하지 않을 것입니다 — 루미",
+    "상처는 빛이 들어오는 곳입니다 — 루미",
+    "슬퍼하지 마세요. 당신이 잃은 것은 다른 형태로 돌아옵니다 — 루미",
+    "너무 작게 행동하지 마세요. 당신은 황홀하게 움직이는 우주입니다 — 루미",
+    "당신이 찾는 것이 당신을 찾고 있습니다 — 루미",
+    "당신 안에 펼쳐지는 이야기에 만족하지 마세요. 당신만의 신화를 펼쳐보세요 — 루미",
+    "당신은 날개를 가지고 태어났는데 왜 인생을 기어다니는 것을 선택합니까 — 루미"
+  ];
+  function quoteOfTheDay() {
+    var day = Math.floor(Date.now() / 86400000);
+    return QUOTES[day % QUOTES.length];
+  }
   var TABS = [
     { id: "all", label: "전체", icon: "all" },
     { id: "mine", label: "내 서재", icon: "mine" },
@@ -877,7 +933,11 @@
       el.innerHTML = "둘러보는 중<br><button type=\"button\" id=\"set-identity\">이름 등록하기</button>";
       return;
     }
-    el.innerHTML = "회원 <strong>" + esc(me.name) + "</strong>님<br><button type=\"button\" id=\"switch-identity\">다른 사람으로 전환</button>";
+    // "다른 사람으로 전환"은 평소엔 거의 쓸 일이 없어서 눈에 띄는 링크 대신
+    // 이름을 탭하면 뜨는 형태로 숨겨두고, 그 자리엔 오늘의 문장을 보여줘요.
+    el.innerHTML =
+      '<button type="button" class="whoami-name" id="switch-identity">회원 <strong>' + esc(me.name) + '</strong>님</button>' +
+      '<p class="whoami-quote">' + esc(quoteOfTheDay()) + "</p>";
   }
 
   function renderBanner() {
